@@ -1,0 +1,381 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+  <title>Speak</title>
+  <meta name="GENERATOR" content="Quanta Plus">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+<body>
+
+<hr>
+<h2>TEXT TO PHONEME TRANSLATION</h2>
+<hr>
+<h3>2.1 Translation Files</h3>
+There is a separate set of pronunciation files for each language, their names starting with the language name.
+<p>
+There are two separate methods for translating words into phonemes:
+<ul>
+<li>Pronunciation Rules.  These are an attempt to define the pronunciation rules for the language. The source file is:<br>
+	<strong><em>&lt;language&gt;_rules</em></strong>&nbsp;	(eg.  english_rules)<br>
+and is compiled into<br>
+	<strong><em>&lt;language&gt;_1</em></strong>&nbsp;	(eg.  english_1)</li>
+<p>
+<li>
+Lookup Dictionary.  A list of individual words and their pronunciations and/or various other properties.  The source files are:<br>
+	<strong><em>&lt;language&gt;_list</em></strong>&nbsp;	(eg.  english_list) and optionally <strong><em>&lt;language&gt;_extra</em></strong>&nbsp;<br>
+and are compiled into<br>
+	<strong><em>&lt;language&gt;_2</em></strong>&nbsp;	(eg.  english_2)</li>
+</ul>
+
+<p>&nbsp;<hr>
+<h3>2.2  Phoneme names</h3>
+Each of the language's phonemes is represented by a mnemonic of 1, 2, 3, or 4 characters.  Together with a number of utility codes (eg. stress marks and pauses), these are defined in the phoneme data file (see *spec not yet available*).
+<p>
+The utility 'phonemes' are:
+
+<ul><table align="left">
+  <tbody>
+    <tr>
+      <td><strong>' </strong></td>
+      <td>primary stress</td>
+    </tr>
+    <tr>
+      <td><strong>, </strong></td>
+      <td>secondary stress</td>
+    </tr>
+    <tr>
+      <td><strong>&#172; </strong></td>
+      <td>unstressed syllable</td>
+    </tr>
+    <tr>
+      <td><strong>=&nbsp;&nbsp;&nbsp;</strong></td>
+      <td>indicates stress on the preceding syllable</td>
+    </tr>
+    <tr>
+      <td><strong>_ </strong></td>
+      <td>short pause</td>
+    </tr>
+    <tr>
+      <td><strong>; </strong></td>
+      <td>a shorter pause</td>
+    </tr>
+    <tr>
+      <td><strong>|| </strong></td>
+      <td>indicates a word boundary within a phoneme string</td>
+    </tr>
+    <tr>
+      <td><strong>| </strong></td>
+      <td>can be used to separate two adjacent characters, to prevent them from being considered as a multi-character phoneme mnemonic</td>
+    </tr>
+  </tbody>
+</table>
+</ul>
+It is not necessary to specify the stress of every syllable.  Stress markers are only needed in order to change the effect of the language's default stress rule.
+<p>
+The phonemes which are used to represent a language's sounds are based on the Kirschenbaum ascii character representation of the International Phonetic Alphabet <a href="http://www.kirschenbaum.net/IPA/ascii-ipa.pdf">www.kirschenbaum.net/IPA/ascii-ipa.pdf</a>
+
+<p>&nbsp;<hr>
+<h3>2.3  Pronunciation Rules</h3>
+The rules in the <strong><em>&lt;language&gt;_rules</em></strong>&nbsp;  file specify the phonemes which are used to pronounce each letter, or sequence of letters.  Some rules only apply when the letter or letters are preceded by, or followed by, other specified letters.
+<p>
+To find the pronunciation of a word, the rules are searched and any which match the letters at the in the word are given a score depending on how many letters are matched.  The pronunciation from the best matching rule is chosen. The pointer into the source word is then advanced past those letters which have been matched and the process is repeated until all the letters of the word have been processed.
+<p>
+<h4>Rule Groups</h4>
+The rules are organized in groups, each starting with a ".group" line:
+<ul><dl>
+<dt><strong>.group &lt;character&gt;</strong><br><dd>
+	A group for each letter or character.
+<p>
+<dt><strong>.group &lt;2 characters&gt;</strong><br><dd>
+	Optional groups for some common 2 letter combinations.
+<p>
+<dt><strong>.group 9</strong><br><dd>
+	A group for numbers.
+<p>
+<dt><strong>.group</strong><br><dd>
+	A group for other characters which don't have their own group.
+</dl>
+</ul>When matching a word, firstly the 2-letter group for the two letters at the current position in the word (if such a group exists) is searched, and then the single-letter group.  The highest scoring rule in either of those two groups is used.
+
+<h4>Rules</h4>
+Each rule is on separate line, and has the syntax:
+<ul>
+	[&lt;pre&gt;)]  &lt;match&gt;  [(&lt;post&gt;]  &lt;phoneme string&gt;
+</ul>
+eg.
+
+<ul><pre>.group o
+       o        0	// "o" is pronounced as [0]
+       oo       u:      // but "oo" is pronounced as [u:]
+    b) oo (k    U
+</pre>
+</ul> "oo" is pronounced as [u:], but when also preceded by "b" and followed by "k", it is pronounced [U].
+<p>
+In the case of a single-letter group, the first character of &lt;match&gt; much be the group letter.  In the case of a 2-letter group, the first two characters of &lt;match&gt; must be the group letters.  The second and third rules above may be in either  .group o  or  .group oo
+<p>
+Alphabetic characters in the &lt;pre&gt;, &lt;match&gt;, and &lt;post&gt; parts must be lower case, and matching is case-insensitive.  Some upper case letters are used in &lt;pre&gt; and &lt;post&gt; with special meanings.
+<p>
+Special Characters in both &lt;pre&gt; and &lt;post&gt;:
+
+<ul><table>
+  <tbody>
+    <tr>
+      <td><strong>_</strong></td>
+      <td>beginning or end of a word</td>
+    </tr>
+    <tr>
+      <td><strong>A</strong></td>
+      <td>any vowel</td>
+    </tr>
+    <tr>
+      <td><strong>B</strong></td>
+      <td>any hard consonant (not h,r,w)</td>
+    </tr>
+    <tr>
+      <td><strong>C</strong></td>
+      <td>any consonant</td>
+    </tr>
+    <tr>
+      <td><strong>D</strong></td>
+      <td>any digit</td>
+    </tr>
+    <tr>
+      <td><strong>E&nbsp;F&nbsp;G&nbsp;</strong></td>
+      <td>may indicate other sets of characters</td>
+    </tr>
+    <tr>
+      <td><strong>Z</strong></td>
+      <td>any non-alphabetic character</td>
+    </tr>
+    <tr>
+      <td><strong>%</strong></td>
+      <td>doubled (placed before a character in &lt;pre&gt; and after it in &lt;post&gt;</td>
+    </tr>
+    <tr>
+      <td><strong>/</strong></td>
+      <td>following character is treated literally</td>
+    </tr>
+  </tbody>
+</table>
+</ul>
+The sets of letters indicated by A, B, C, E, F G may be defined differently for each language.
+<pre>     _)  a         // "a" at the start of a word
+         a (CC     // "a" followed by two consonants
+         a (C%     // "a" followed by a double consonant (the same letter twice)
+         a (/%     // "a" followed by a percent sign
+     %C) a         // "a" preceded by a double consonants
+</pre>
+Special characters only in &lt;pre&gt;:
+<ul><table>
+  <tbody>
+    <tr>
+      <td><strong>@&nbsp;&nbsp;&nbsp;</strong></td>
+      <td>any syllable</td>
+    </tr>
+    <tr>
+      <td><strong>&#038;</strong></td>
+      <td>a syllable which may be stressed (i.e. is not defined as unstressed)</td>
+    </tr>
+  </tbody>
+</table>
+</ul>
+eg.
+<pre>     @@)  bi      // "bi" preceded by at least two syllables
+     @@a) bi      // "bi" preceded by at least 2 syllables and following 'a'
+</pre>
+Note, that matching characters in the &lt;pre&gt; part do not affect the syllable counting.
+<p>
+Special characters only in &lt;post&gt;:
+<ul><table>
+  <tbody>
+    <tr>
+      <td><strong>@</strong></td>
+      <td>a vowel follows somewhere in the word</td>
+    </tr>
+    <tr>
+      <td><strong>+</strong></td>
+      <td>force an increase in the score in this rule (may be repeated for more effect)</td>
+    </tr>
+    <tr>
+      <td><strong>$&lt;number&gt;&nbsp;&nbsp;</strong></td>
+      <td>this number of matching characters are a standard suffix, remove them and retranslate</td>
+    </tr>
+    <tr>
+      <td><strong>P&lt;number&gt;</strong></td>
+      <td>this number of matching characters are a standard prefix, remove them and retranslate</td>
+    </tr>
+    <tr>
+      <td><strong>N</strong></td>
+      <td>only use this rule if the word is not a retranslation after removing a suffix</td>
+    </tr>
+    <tr>
+      <td><strong>&#163;</strong></td>
+      <td>(English specific) change the next "e" into a special character "&#172;"</td>
+    </tr>
+  </tbody>
+</table>
+</ul>
+
+eg.
+<pre>   @) ly (_$2   lI      // "ly", at end of a word with at least one other
+                        //   syllable, is a suffix pronounced [lI].  Remove
+                        //   it and retranslate the word.
+
+   _) un (@P2   ¬Vn     // "un" at the start of a word is an unstressed
+                        //   prefix pronounced [Vn]
+   _) un (i     ju:     // ... except in words starting "uni"
+   _) un (inP2  ,Vn     // ... but it is for words starting "unin"
+</pre>
+$ and P must be at the end of the &lt;post&gt; string.
+<p>
+$&lt;number&gt; may be followed by additonal letters (eg. $2ei )
+
+<ul><table>
+  <tbody>
+    <tr>
+      <td><strong>d&nbsp;&nbsp;&nbsp;</strong></td>
+      <td>the previous letter may have been doubled when the suffix was added</td>
+    </tr>
+    <tr>
+      <td><strong>e</strong></td>
+      <td>"e" may have been removed</td>
+    </tr>
+    <tr>
+      <td><strong>i</strong></td>
+      <td>"y" may have been changed to "i"</td>
+    </tr>
+    <tr>
+      <td><strong>v</strong></td>
+      <td>the suffix means the verb form of pronunciation should be used</td>
+    </tr>
+    <tr>
+      <td><strong>f</strong></td>
+      <td>the suffix means the next word is likely to be a verb</td>
+    </tr>
+  </tbody>
+</table>
+</ul>
+
+<p>&nbsp;<hr>
+<h3>2.4  Pronunciation Dictionary List</h3>
+The <strong><em>&lt;language&gt;_list</em></strong>&nbsp;  file contains a list of words whose pronunciations are given explicitly, rather than determined by the Pronunciation Rules.
+The <strong><em>&lt;language&gt;_extra</em></strong>&nbsp; file, if present, is also used and it's contents are taken as coming after those in <strong><em>&lt;language&gt;_list</em></strong>.
+<p>
+Also the list can be used to specify the stress pattern, or other properties, of a word.
+<p>
+If the Pronunciation rules are applied to a word and indicate a standard prefix or suffix, then the word is again looked up in Pronunciation Dictionary List after the prefix or suffix has been removed.
+<p>
+Line in the dictionary list have the form:
+<ul>
+&lt;word&gt; &nbsp; &nbsp;  [&lt;phoneme string&gt;] &nbsp; &nbsp;	[&lt;flags&gt;]
+</ul>eg.
+<pre>     book      bUk
+</pre>
+Rather than a full pronunciation, just the stress may be given, to change where it would be otherwise placed by the Pronunciation Rules:
+<pre>     berlin       $2      // stress on second syllable
+     absolutely   $3      // stress on third syllable
+     for          $u      // an unstressed word
+</pre>
+<h4>Multiple Words</h4>
+A pronunciation may also be specified for a group of words, when these appear together. Up to  four words may be given, enclosed in brackets.  This may be used for change the pronunciation or stress pattern when these words occur together,
+<pre>    (de jure)    deI||dZ'U@rI2   // note || used as a word break in the phoneme string</pre>
+or to run them together, pronounced as a single word
+<pre>    (of a)       @v@
+</pre>
+or to give them a flag when they occur together
+<pre>    (such as)    sVtS||a2z   $pause	   // precede with a pause
+</pre>
+<h4>Flags</h4>
+A word (or group of words) may be given one or more flags.
+
+<ul><table>
+  <tbody>
+    <tr>
+      <td>$pause</td>
+      <td>Ensure a short pause before this word (eg. for conjunctions such as "and")</td>
+    </tr>
+    <tr>
+      <td>$only</td>
+      <td>The rule does not apply if a prefix or suffix has already been removed.</td>
+    </tr>
+    <tr>
+      <td>$onlys</td>
+      <td>As $only, except that a standard plural ending is allowed</td>
+    </tr>
+    <tr>
+      <td>$strend</td>
+      <td>Word is fully stressed if it's at the end of a clause.</td>
+    </tr>
+    <tr>
+      <td>$strend2</td>
+      <td>As $strend, but also stressed if followed by only unstressed word(s)</td>
+    </tr>
+    <tr>
+      <td>$unstressend&nbsp;</td>
+      <td>Word is unstressed if it's at the end of a clause</td>
+    </tr>
+    <tr>
+      <td>$atend</td>
+      <td>Use this pronunciation if it's at the end of a clause</td>
+    </tr>
+    <tr>
+      <td>$capital</td>
+      <td>Use this pronunciation if word has initial capital letter (eg. polish v Polish)</td>
+    </tr>
+    <tr>
+      <td>$dot</td>
+      <td>Ignore a . after this word even when followed by a capital letter (eg. Mr. Dr. )</td>
+    </tr>
+    <tr>
+      <td>$abbrev</td>
+      <td>Never speak this word as individual letters (eg, Roman numerals III, IV )</td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>
+    <tr>
+      <td>$verb</td>
+      <td>Use this pronunciation if it's a verb</td>
+    </tr>
+    <tr>
+      <td>$past</td>
+      <td>Use this pronunciation if it's past tense</td>
+    </tr>
+    <tr>
+      <td>$verbf</td>
+      <td>The following word is probably is a verb</td>
+    </tr>
+    <tr>
+      <td>$verbsf</td>
+      <td>The following word is probably is a if it has an "s" suffix</td>
+    </tr>
+    <tr>
+      <td>$nounf</td>
+      <td>The following word is probably not a verb</td>
+    </tr>
+    <tr>
+      <td>$pastf</td>
+      <td>The following word is probably past tense</td>
+    </tr>
+    <tr>
+      <td>$verbextend</td>
+      <td>Extend the influence of $verbf and $verbsf</td>
+    </tr>
+  </tbody>
+</table></ul>
+The second group are probably English specific, but something similar may be useful in other languages. They are a crude attempt to improve the accuracy of pairs like  ob'ject (verb) v  'object (noun) and read (present) v read (past).
+<p>
+The dictionary list is searched from bottom to top.  The first match that satisfies any conditions is used (i.e. the one lowest down the list).  So if we have:
+<pre>
+    to    t@               // unstressed version
+    to    tu:   $atend     // stressed version
+</pre>
+then if "to" is at the end of the clause, we get [tu:], if not then we get [t@].
+
+
+<hr>
+
+</body>
+</html>
